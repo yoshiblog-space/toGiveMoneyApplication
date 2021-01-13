@@ -1,18 +1,77 @@
 <template>
   <div class="home">
     <img alt="Vue logo" src="../assets/logo.png" />
-    <HelloWorld msg="Welcome to Your Vue.js App" />
+    <h3 class="subtitle is-3">新規登録画面</h3>
+    <table>
+      <tbody>
+        <tr>
+          <td>
+           <label for="username">ユーザ名</label>
+          </td>
+          <td>
+            <input type="text" name="username" placeholder="userName" v-model="inputUsername">
+          </td>
+        </tr>
+        <tr>
+          <td>
+           <label for="email">メールアドレス</label>
+          </td>
+          <td>
+            <input type="text" name="email" placeholder="E-Mail" v-model="inputEmail">
+          </td>
+        </tr>
+        <tr>
+          <td>
+           <label for="password">パスワード</label>
+          </td>
+          <td>
+            <input type="text" name="username" placeholder="Password" v-model="inputPassword">
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <button class="button is-link is-outlined" @click="addInputData(inputUsername,inputEmail,inputPassword)">新規登録</button>
+    <div class="textclick">
+      <a href="#" class="is-size-7">ログインはこちらから</a>
+    </div>
+
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import HelloWorld from "@/components/HelloWorld.vue";
+import firebase from "firebase/app";
+import "firebase/database";
 
 export default {
   name: "Home",
-  components: {
-    HelloWorld
+  data() {
+    return {
+      inputUsername: '',
+      inputEmail: '',
+      inputPassword: '',
+    }
+  },
+  methods: {
+    addInputData(inputUsername, inputEmail, inputPassword) {
+      firebase.database().ref('users').set({
+      username: inputUsername,
+      email: inputEmail,
+      profile_picture : inputPassword
+      });
+    }
   }
 };
 </script>
+<style>
+  h1{
+        font-weight: normal;
+  }
+  table{
+    margin:60px auto 40px;
+    font-weight: bold;
+  }
+  .textclick{
+    line-height:1em;
+  }
+</style>

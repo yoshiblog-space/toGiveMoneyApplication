@@ -8,9 +8,10 @@
   </div>
 </template>
 
-<style>
+<style lang="scss">
+@import "../node_modules/bulma/bulma.sass";
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'ヒラギノ丸ゴ ProN','Hiragino Maru Gothic ProN',sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
