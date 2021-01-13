@@ -54,7 +54,7 @@ export default {
   },
   methods: {
     addInputData(inputUsername, inputEmail, inputPassword) {
-      firebase.database().ref('users').set({
+      firebase.database().ref('userinfo/' + inputUsername).set({
       username: inputUsername,
       email: inputEmail,
       profile_picture : inputPassword
