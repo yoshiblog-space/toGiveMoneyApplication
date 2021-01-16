@@ -30,7 +30,7 @@
         </tr>
       </tbody>
     </table>
-    <button class="button is-link is-outlined" @click="addInputData(inputUsername,inputEmail,inputPassword)">新規登録</button>
+    <button class="button is-link is-outlined" @click="actionInputData(inputUsername,inputEmail,inputPassword)">新規登録</button>
     <div class="textclick">
       <a href="#" class="is-size-7">ログインはこちらから</a>
     </div>
@@ -40,8 +40,7 @@
 
 <script>
 // @ is an alias to /src
-import firebase from "firebase/app";
-import "firebase/database";
+
 
 export default {
   name: "Home",
@@ -53,12 +52,13 @@ export default {
     }
   },
   methods: {
-    addInputData(inputUsername, inputEmail, inputPassword) {
-      firebase.database().ref('userinfo/' + inputUsername).set({
-      username: inputUsername,
-      email: inputEmail,
-      profile_picture : inputPassword
-      });
+    actionInputData(inputUsername,inputEmail,inputPassword){
+      this.$store.dispatch({
+        type:'addInputData',
+        setUsername: inputUsername,
+        setEmail: inputEmail,
+        setPassword: inputPassword
+      })
     }
   }
 };
