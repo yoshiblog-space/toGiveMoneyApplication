@@ -6,72 +6,90 @@
       <tbody>
         <tr>
           <td>
-           <label for="username">ユーザ名</label>
+            <label for="username">ユーザ名</label>
           </td>
           <td>
-            <input type="text" name="username" placeholder="userName" v-model="inputUsername">
-          </td>
-        </tr>
-        <tr>
-          <td>
-           <label for="email">メールアドレス</label>
-          </td>
-          <td>
-            <input type="text" name="email" placeholder="E-Mail" v-model="inputEmail">
+            <input
+              type="text"
+              name="username"
+              placeholder="userName"
+              v-model="inputUsername"
+            />
           </td>
         </tr>
         <tr>
           <td>
-           <label for="password">パスワード</label>
+            <label for="email">メールアドレス</label>
           </td>
           <td>
-            <input type="text" name="username" placeholder="Password" v-model="inputPassword">
+            <input
+              type="text"
+              name="email"
+              placeholder="E-Mail"
+              v-model="inputEmail"
+            />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <label for="password">パスワード</label>
+          </td>
+          <td>
+            <input
+              type="text"
+              name="username"
+              placeholder="Password"
+              v-model="inputPassword"
+            />
           </td>
         </tr>
       </tbody>
     </table>
-    <button class="button is-link is-outlined" @click="actionInputData(inputUsername,inputEmail,inputPassword)">新規登録</button>
+    <button
+      class="button is-link is-outlined"
+      @click="actionInputData(inputUsername, inputEmail, inputPassword)"
+    >
+      新規登録
+    </button>
     <div class="textclick">
       <a href="#" class="is-size-7">ログインはこちらから</a>
     </div>
-
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
 
-
 export default {
-  name: "Home",
+  name: 'Home',
   data() {
     return {
       inputUsername: '',
       inputEmail: '',
       inputPassword: '',
-    }
+    };
   },
   methods: {
-    actionInputData(inputUsername,inputEmail,inputPassword){
+    actionInputData(inputUsername, inputEmail, inputPassword) {
       this.$store.dispatch({
-        type:'addInputData',
+        type: 'addInputData',
         setUsername: inputUsername,
         setEmail: inputEmail,
-        setPassword: inputPassword
-      })
-    }
-  }
+        setPassword: inputPassword,
+      });
+    },
+  },
 };
 </script>
 <style>
-  h1{
-        font-weight: normal;
-  }
-  table{
-    margin:60px auto 40px;
-    font-weight: bold;
-  }
-  .textclick{
-    line-height:1em;
-  }
+h1 {
+  font-weight: normal;
+}
+table {
+  margin: 60px auto 40px;
+  font-weight: bold;
+}
+.textclick {
+  line-height: 1em;
+}
 </style>
