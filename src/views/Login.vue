@@ -1,22 +1,9 @@
 <template>
-  <div class="home">
+  <div class="login">
     <img alt="Vue logo" src="../assets/logo.png" />
-    <h3 class="subtitle is-3">新規登録画面</h3>
+    <h3 class="subtitle is-3">ログイン画面</h3>
     <table>
       <tbody>
-        <tr>
-          <td>
-            <label for="username">ユーザ名</label>
-          </td>
-          <td>
-            <input
-              type="text"
-              name="username"
-              placeholder="userName"
-              v-model="inputUsername"
-            />
-          </td>
-        </tr>
         <tr>
           <td>
             <label for="email">メールアドレス</label>
@@ -26,7 +13,7 @@
               type="text"
               name="email"
               placeholder="E-Mail"
-              v-model="inputEmail"
+              v-model="loginEmail"
             />
           </td>
         </tr>
@@ -39,22 +26,17 @@
               type="text"
               name="username"
               placeholder="Password"
-              v-model="inputPassword"
+              v-model="loginPassword"
             />
           </td>
         </tr>
       </tbody>
     </table>
-    <button
-      class="button is-link is-outlined"
-      @click="actionInputData(inputUsername, inputEmail, inputPassword)"
-    >
-      新規登録
+    <button class="button is-link is-outlined" @click="loginUserData()">
+      ログイン
     </button>
     <div class="textclick">
-      <router-link to="/login" class="is-size-7">
-        ログインはこちらから
-      </router-link>
+      <router-link to="/" class="is-size-7"> 新規登録はこちらから </router-link>
     </div>
   </div>
 </template>
@@ -63,12 +45,11 @@
 // @ is an alias to /src
 
 export default {
-  name: 'Home',
+  name: 'Login',
   data() {
     return {
-      inputUsername: '',
-      inputEmail: '',
-      inputPassword: '',
+      loginEmail: '',
+      loginPassword: '',
     };
   },
   created: function () {
@@ -77,13 +58,22 @@ export default {
     });
   },
   methods: {
-    actionInputData(inputUsername, inputEmail, inputPassword) {
-      this.$store.dispatch({
-        type: 'addInputData',
-        setUsername: inputUsername,
-        setEmail: inputEmail,
-        setPassword: inputPassword,
+    loginUserData() {
+      const checkUserDatas = this.$store.state.userInfo;
+      let userCheckFlag = 0;
+      checkUserDatas.forEach((checkUserData) => {
+        if (checkUserData.userEmail === this.loginEmail) {
+          if (checkUserData.userPassword === this.loginPassword) {
+            alert('ログインできました！');
+            userCheckFlag = 1;
+          } else {
+            alert('パスワードが異なります');
+          }
+        }
       });
+      if (!userCheckFlag) {
+        alert('該当ユーザがいません');
+      }
     },
   },
 };

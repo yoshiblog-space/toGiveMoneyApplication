@@ -7,22 +7,36 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
-    userInfo:[]
+    userInfo: []
   },
   mutations: {
-    addUserInfo(state, setUserData){
-      state.userInfo.push(setUserData);
-    }
+    setUserInfo(state, userAllData) {
+      const userKeys = Object.keys(userAllData)
+      state.userInfo = [];
+      userKeys.forEach(userKey => {
+        state.userInfo.push(userAllData[userKey]);
+      })
+      console.log(state.userInfo);
+    },
   },
   actions: {
-    addInputData({ commit },{setUsername, setEmail, setPassword}) {
+    onLoadData({ commit }) {
+      firebase.database().ref('userinfo/').once('value', (snapShotAllData) => {
+        const userAllData = snapShotAllData.val();
+        commit('setUserInfo', userAllData);
+      })
+    },
+    addInputData({ commit }, { setUsername, setEmail, setPassword }) {
       const setUserData = {
         userName: setUsername,
         userEmail: setEmail,
-        userPassword : setPassword
+        userPassword: setPassword
       }
       firebase.database().ref('userinfo/' + setUsername).set(setUserData);
-      commit('addUserInfo',setUserData);
+      firebase.database().ref('userinfo/').once('value', (snapShotAllData) => {
+        const userAllData = snapShotAllData.val();
+        commit('setUserInfo', userAllData);
+      })
     },
   },
   modules: {}
