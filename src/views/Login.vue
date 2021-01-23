@@ -2,6 +2,10 @@
   <div class="login">
     <img alt="Vue logo" src="../assets/logo.png" />
     <h3 class="subtitle is-3">ログイン画面</h3>
+    <p class="has-text-danger" v-if="errMessage">
+      メールアドレス,又はパスワードが違います。
+    </p>
+    <p class="has-text-link" v-if="okMessage">ログインします。</p>
     <table>
       <tbody>
         <tr>
@@ -13,7 +17,7 @@
               type="text"
               name="email"
               placeholder="E-Mail"
-              v-model="loginEmail"
+              v-model="email"
             />
           </td>
         </tr>
@@ -26,7 +30,7 @@
               type="text"
               name="username"
               placeholder="Password"
-              v-model="loginPassword"
+              v-model="password"
             />
           </td>
         </tr>
@@ -48,32 +52,32 @@ export default {
   name: 'Login',
   data() {
     return {
-      loginEmail: '',
-      loginPassword: '',
+      email: '',
+      password: '',
+      errMessage: false,
+      okMessage: false,
     };
-  },
-  created: function () {
-    this.$store.dispatch({
-      type: 'onLoadData',
-    });
   },
   methods: {
     loginUserData() {
-      const checkUserDatas = this.$store.state.userInfo;
-      let userCheckFlag = 0;
-      checkUserDatas.forEach((checkUserData) => {
-        if (checkUserData.userEmail === this.loginEmail) {
-          if (checkUserData.userPassword === this.loginPassword) {
-            alert('ログインできました！');
-            userCheckFlag = 1;
+      this.$store
+        .dispatch({
+          type: 'onLoadData',
+        })
+        .then(() => {
+          const checkUserResult = this.$store.getters.checkUserData(
+            this.email,
+            this.password
+          );
+          if (checkUserResult.loginResult) {
+            this.okMessage = true;
+            this.errMessage = false;
           } else {
-            alert('パスワードが異なります');
+            this.okMessage = false;
+            this.errMessage = true;
           }
-        }
-      });
-      if (!userCheckFlag) {
-        alert('該当ユーザがいません');
-      }
+        })
+        .catch((e) => console.error(e));
     },
   },
 };
@@ -83,7 +87,7 @@ h1 {
   font-weight: normal;
 }
 table {
-  margin: 60px auto 40px;
+  margin: 40px auto 40px;
   font-weight: bold;
 }
 .textclick {

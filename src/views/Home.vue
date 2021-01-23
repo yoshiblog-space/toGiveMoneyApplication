@@ -2,6 +2,9 @@
   <div class="home">
     <img alt="Vue logo" src="../assets/logo.png" />
     <h3 class="subtitle is-3">新規登録画面</h3>
+    <p class="has-text-danger" v-if="errMessage">
+      メールアドレスが既に登録ずみです。
+    </p>
     <table>
       <tbody>
         <tr>
@@ -13,7 +16,7 @@
               type="text"
               name="username"
               placeholder="userName"
-              v-model="inputUsername"
+              v-model="username"
             />
           </td>
         </tr>
@@ -26,7 +29,7 @@
               type="text"
               name="email"
               placeholder="E-Mail"
-              v-model="inputEmail"
+              v-model="email"
             />
           </td>
         </tr>
@@ -39,16 +42,13 @@
               type="text"
               name="username"
               placeholder="Password"
-              v-model="inputPassword"
+              v-model="password"
             />
           </td>
         </tr>
       </tbody>
     </table>
-    <button
-      class="button is-link is-outlined"
-      @click="actionInputData(inputUsername, inputEmail, inputPassword)"
-    >
+    <button class="button is-link is-outlined" @click="actionInputData()">
       新規登録
     </button>
     <div class="textclick">
@@ -66,24 +66,37 @@ export default {
   name: 'Home',
   data() {
     return {
-      inputUsername: '',
-      inputEmail: '',
-      inputPassword: '',
+      username: '',
+      email: '',
+      password: '',
+      errMessage: false,
     };
   },
-  created: function () {
-    this.$store.dispatch({
-      type: 'onLoadData',
-    });
-  },
   methods: {
-    actionInputData(inputUsername, inputEmail, inputPassword) {
-      this.$store.dispatch({
-        type: 'addInputData',
-        setUsername: inputUsername,
-        setEmail: inputEmail,
-        setPassword: inputPassword,
-      });
+    actionInputData() {
+      this.$store
+        .dispatch({
+          type: 'onLoadData',
+        })
+        .then(() => {
+          const checkUserDatas = this.$store.getters.checkUserData(
+            this.email,
+            this.password
+          );
+          if (!checkUserDatas.emailResult) {
+            this.errMessage = false;
+            this.$store.dispatch({
+              type: 'addInputData',
+              dataName: this.username,
+              dataEmail: this.email,
+              dataPassword: this.password,
+            });
+          } else {
+            this.errMessage = true;
+            return;
+          }
+        })
+        .catch((e) => console.error(e));
     },
   },
 };
