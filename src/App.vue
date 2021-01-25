@@ -5,13 +5,18 @@
       <router-link to="/about">About</router-link>
     </div> -->
     <router-view />
+    <footer class="footerbox">
+      <div class="content has-text-centered">
+        <p>Copyright @2019 oo Inc All rights reserved</p>
+      </div>
+    </footer>
   </div>
 </template>
 
 <style lang="scss">
 @import "../node_modules/bulma/bulma.sass";
 #app {
-  font-family: 'ヒラギノ丸ゴ ProN','Hiragino Maru Gothic ProN',sans-serif;
+  font-family: "ヒラギノ丸ゴ ProN", "Hiragino Maru Gothic ProN", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
@@ -29,5 +34,9 @@
 
 #nav a.router-link-exact-active {
   color: #42b983;
+}
+
+.footerbox {
+  margin: 50px auto;
 }
 </style>

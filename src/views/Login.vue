@@ -1,25 +1,13 @@
 <template>
-  <div class="home">
+  <div class="login">
     <img alt="Vue logo" src="../assets/logo.png" />
-    <h3 class="subtitle is-3">新規登録画面</h3>
+    <h3 class="subtitle is-3">ログイン画面</h3>
     <p class="has-text-danger" v-if="errMessage">
-      メールアドレスが既に登録ずみです。
+      メールアドレス,又はパスワードが違います。
     </p>
+    <p class="has-text-link" v-if="okMessage">ログインします。</p>
     <table>
       <tbody>
-        <tr>
-          <td>
-            <label for="username">ユーザ名</label>
-          </td>
-          <td>
-            <input
-              type="text"
-              name="username"
-              placeholder="userName"
-              v-model="username"
-            />
-          </td>
-        </tr>
         <tr>
           <td>
             <label for="email">メールアドレス</label>
@@ -48,13 +36,11 @@
         </tr>
       </tbody>
     </table>
-    <button class="button is-link is-outlined" @click="actionInputData()">
-      新規登録
+    <button class="button is-link is-outlined" @click="loginUserData()">
+      ログイン
     </button>
     <div class="textclick">
-      <router-link to="/login" class="is-size-7">
-        ログインはこちらから
-      </router-link>
+      <router-link to="/" class="is-size-7"> 新規登録はこちらから </router-link>
     </div>
   </div>
 </template>
@@ -63,37 +49,32 @@
 // @ is an alias to /src
 
 export default {
-  name: 'Home',
+  name: 'Login',
   data() {
     return {
-      username: '',
       email: '',
       password: '',
       errMessage: false,
+      okMessage: false,
     };
   },
   methods: {
-    actionInputData() {
+    loginUserData() {
       this.$store
         .dispatch({
           type: 'onLoadData',
         })
         .then(() => {
-          const checkUserDatas = this.$store.getters.checkUserData(
+          const checkUserResult = this.$store.getters.checkUserData(
             this.email,
             this.password
           );
-          if (!checkUserDatas.emailResult) {
+          if (checkUserResult.loginResult) {
+            this.okMessage = true;
             this.errMessage = false;
-            this.$store.dispatch({
-              type: 'addInputData',
-              dataName: this.username,
-              dataEmail: this.email,
-              dataPassword: this.password,
-            });
           } else {
+            this.okMessage = false;
             this.errMessage = true;
-            return;
           }
         })
         .catch((e) => console.error(e));
@@ -106,7 +87,7 @@ h1 {
   font-weight: normal;
 }
 table {
-  margin: 60px auto 40px;
+  margin: 40px auto 40px;
   font-weight: bold;
 }
 .textclick {
