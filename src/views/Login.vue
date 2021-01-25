@@ -72,6 +72,11 @@ export default {
           if (checkUserResult.loginResult) {
             this.okMessage = true;
             this.errMessage = false;
+            this.$store.dispatch({
+              type: 'commitLoginUser',
+              dataUserkey: checkUserResult.loginResult,
+            });
+            this.$router.push({ path: '/dashboard' });
           } else {
             this.okMessage = false;
             this.errMessage = true;

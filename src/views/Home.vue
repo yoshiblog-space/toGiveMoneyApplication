@@ -91,6 +91,13 @@ export default {
               dataEmail: this.email,
               dataPassword: this.password,
             });
+            this.$store.dispatch('onLoadData').then(() => {
+              this.$store.dispatch({
+                type: 'commitLoginUser',
+                dataUserkey: `ID:${checkUserDatas.dataLength}`,
+              });
+              this.$router.push({ path: '/dashboard' });
+            });
           } else {
             this.errMessage = true;
             return;
