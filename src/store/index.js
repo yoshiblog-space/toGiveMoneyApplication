@@ -61,10 +61,7 @@ export default new Vuex.Store({
       state.usersInfo = userAllData;
     },
     setLoginUserInfo(state, dataUserkey) {
-      state.usersInfo[dataUserkey].userLoginFlag = true;
-    },
-    setLogoutUserInfo(state, dataUserkey) {
-      state.usersInfo[dataUserkey].userLoginFlag = false;
+      state.usersInfo[dataUserkey].userLoginFlag = !state.usersInfo[dataUserkey].userLoginFlag ;
     },
   },
   actions: {
@@ -99,9 +96,6 @@ export default new Vuex.Store({
     },
     commitLoginUser({ commit }, { dataUserkey }) {
       commit('setLoginUserInfo', dataUserkey);
-    },
-    commitLogoutUser({ commit }, { dataUserkey }) {
-      commit('setLogoutUserInfo', dataUserkey);
     },
   },
   modules: {}

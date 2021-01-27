@@ -84,7 +84,7 @@ export default {
   methods: {
     logoutUser() {
       this.$store.dispatch({
-        type: 'commitLogoutUser',
+        type: 'commitLoginUser',
         dataUserkey: this.$store.getters.logOnUser.userkey,
       });
       this.$router.push({ path: '/login' });
