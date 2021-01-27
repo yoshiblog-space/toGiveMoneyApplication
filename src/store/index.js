@@ -10,10 +10,10 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   state: {
     nonce: "randamValue",
-    usersInfo: {}
+    usersInfo: {},
   },
   getters: {
-    checkUserData: (state) => (dataEmail, dataPassword) => {
+    checkUserData: (state) => (dataEmail, dataPassword) => {  //ユーザー登録情報の確認
       const userskeys = Object.keys(state.usersInfo);
       let checkUserMail = 0;
       let checkUserLogin = 0;
@@ -23,21 +23,42 @@ export default new Vuex.Store({
           if (dataEmail === state.usersInfo[userkey].userEmail) {
             checkUserMail = 1;
             if (hashPassword === state.usersInfo[userkey].userPassword) {
-              checkUserLogin = 1;
+              checkUserLogin = userkey;
             }
           }
         })
       }
       return {
         emailResult: checkUserMail,
+        dataLength: userskeys.length,
         loginResult: checkUserLogin
       }
-    }
+    },
+    logOnUser(state) { //ダッシュボードのユーザー情報取得
+      const userskeys = Object.keys(state.usersInfo);
+      let logOnName = '';
+      let logOnWallet = '';
+      if (userskeys) {
+        userskeys.forEach(userkey => {
+          if (state.usersInfo[userkey].userLoginFlag === true) {
+            logOnName = state.usersInfo[userkey].userName;
+            logOnWallet = state.usersInfo[userkey].userWallet;
+          }
+        })
+      }
+      return {
+        userName: logOnName,
+        userWallet: logOnWallet,
+      }
+    },
   },
   mutations: {
     setUserInfo(state, userAllData) {
       state.usersInfo = {};
       state.usersInfo = userAllData;
+    },
+    setLoginUserInfo(state, dataUserkey) {
+      state.usersInfo[dataUserkey].userLoginFlag = true;
     },
   },
   actions: {
@@ -49,11 +70,14 @@ export default new Vuex.Store({
         return;
       }
     },
-    addInputData: async function ({ state, dispatch }, { dataName, dataEmail, dataPassword }) {
+    addInputData: async function ({ state }, { dataName, dataEmail, dataPassword }) {
       const setUserData = {
         userName: dataName,
         userEmail: dataEmail,
-        userPassword: sha256(dataPassword).toString(Base64)
+        userPassword: sha256(dataPassword).toString(Base64),
+        userLoginFlag: false,
+        userWallet: 0,
+
       }
       let userId = 0;
       if (!Object.keys(state.usersInfo).length) {
@@ -61,13 +85,16 @@ export default new Vuex.Store({
       } else {
         userId = Object.keys(state.usersInfo).length;
       }
-      firebase.database().ref(`userinfo/ + ID:${userId}`).set(setUserData, (error) => {
+      firebase.database().ref(`userinfo/ID:${userId}`).set(setUserData, (error) => {
         if (error) {
           console.error(error);
         }
       });
-      dispatch('onLoadData')
     },
+    commitLoginUser({ commit }, { dataUserkey }) {
+      commit('setLoginUserInfo', dataUserkey);
+    }
+
   },
   modules: {}
 });
