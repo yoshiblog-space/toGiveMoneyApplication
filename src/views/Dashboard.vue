@@ -64,17 +64,20 @@
 // @ is an alias to /src
 
 export default {
-  name: 'dashboard',
+  name: "dashboard",
+  beforeRouteEnter(to, form, next) {
+    next((vm) => {
+      if (!vm.$store.getters.logOnUser.userName) {
+        alert("ログイン情報がありません。");
+        next("/login");
+      }
+    });
+  },
   data() {
     return {
-      user: '',
-      wallet: '',
+      user: "",
+      wallet: "",
     };
-  },
-  created() {
-    if (!this.$store.getters.logOnUser.userName) {
-      this.$router.push({ path: '/login' });
-    }
   },
   mounted() {
     const userData = this.$store.getters.logOnUser;
@@ -84,10 +87,10 @@ export default {
   methods: {
     logoutUser() {
       this.$store.dispatch({
-        type: 'commitLoginUser',
+        type: "commitLoginUser",
         dataUserkey: this.$store.getters.logOnUser.userkey,
       });
-      this.$router.push({ path: '/login' });
+      this.$router.push({ path: "/login" });
     },
   },
 };
