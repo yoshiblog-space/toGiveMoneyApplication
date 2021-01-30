@@ -6,7 +6,9 @@
         <p class="subtitle is-5">{{ user }}さんようこそ！！</p>
         <p class="subtitle is-5">残高:{{ wallet }}</p>
       </div>
-      <button class="button is-link is-outlined logout">ログアウト</button>
+      <button class="button is-link is-outlined logout" @click="logoutUser">
+        ログアウト
+      </button>
     </div>
 
     <h3 class="subtitle is-3">ユーザ一覧</h3>
@@ -62,19 +64,34 @@
 // @ is an alias to /src
 
 export default {
-  name: 'dashboard',
+  name: "dashboard",
+  beforeRouteEnter(to, form, next) {
+    next((vm) => {
+      if (!vm.$store.getters.logOnUser.userName) {
+        alert("ログイン情報がありません。");
+        next("/login");
+      }
+    });
+  },
   data() {
     return {
-      user: '',
-      wallet: '',
+      user: "",
+      wallet: "",
     };
   },
   mounted() {
-      const userData = this.$store.getters.logOnUser;
-      this.user = userData.userName;
-      this.wallet = userData.userWallet;
+    const userData = this.$store.getters.logOnUser;
+    this.user = userData.userName;
+    this.wallet = userData.userWallet;
   },
   methods: {
+    logoutUser() {
+      this.$store.dispatch({
+        type: "commitLoginUser",
+        dataUserkey: this.$store.getters.logOnUser.userkey,
+      });
+      this.$router.push({ path: "/login" });
+    },
   },
 };
 </script>

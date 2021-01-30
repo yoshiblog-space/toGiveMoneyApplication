@@ -38,17 +38,20 @@ export default new Vuex.Store({
       const userskeys = Object.keys(state.usersInfo);
       let logOnName = '';
       let logOnWallet = '';
+      let logOnUserkey = '';  //for logout 
       if (userskeys) {
         userskeys.forEach(userkey => {
           if (state.usersInfo[userkey].userLoginFlag === true) {
             logOnName = state.usersInfo[userkey].userName;
             logOnWallet = state.usersInfo[userkey].userWallet;
+            logOnUserkey = userkey;
           }
         })
       }
       return {
         userName: logOnName,
         userWallet: logOnWallet,
+        userkey: logOnUserkey,
       }
     },
   },
@@ -58,7 +61,7 @@ export default new Vuex.Store({
       state.usersInfo = userAllData;
     },
     setLoginUserInfo(state, dataUserkey) {
-      state.usersInfo[dataUserkey].userLoginFlag = true;
+      state.usersInfo[dataUserkey].userLoginFlag = !state.usersInfo[dataUserkey].userLoginFlag ;
     },
   },
   actions: {
@@ -93,8 +96,7 @@ export default new Vuex.Store({
     },
     commitLoginUser({ commit }, { dataUserkey }) {
       commit('setLoginUserInfo', dataUserkey);
-    }
-
+    },
   },
   modules: {}
 });
