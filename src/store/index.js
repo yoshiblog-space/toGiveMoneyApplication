@@ -36,25 +36,22 @@ export default new Vuex.Store({
     },
     logOnUser(state) { //ダッシュボードのユーザー情報取得
       const userskeys = Object.keys(state.usersInfo);
-      let logOnName = '';
-      let logOnWallet = '';
-      let logOnUserkey = '';  //for logout 
+      let userInfo = {};
       let otherUsersInfo = [];
       if (userskeys) {
         userskeys.forEach(userkey => {
           if (state.usersInfo[userkey].userLoginFlag === true) {
-            logOnName = state.usersInfo[userkey].userName;
-            logOnWallet = state.usersInfo[userkey].userWallet;
-            logOnUserkey = userkey;
+            userInfo = state.usersInfo[userkey];
+            userInfo.userKey = userkey;
           } else {
-            otherUsersInfo.push(state.usersInfo[userkey]);
+            const otheruserInfo = state.usersInfo[userkey];
+            otheruserInfo.userKey = userkey;
+            otherUsersInfo.push(otheruserInfo);
           }
         })
       }
       return {
-        userName: logOnName,
-        userWallet: logOnWallet,
-        userkey: logOnUserkey,
+        userInfo: userInfo,
         otherUsers: otherUsersInfo,
       }
     },
@@ -66,6 +63,9 @@ export default new Vuex.Store({
     },
     setLoginUserInfo(state, dataUserkey) {
       state.usersInfo[dataUserkey].userLoginFlag = !state.usersInfo[dataUserkey].userLoginFlag;
+    },
+    updateUserInfo(state, updateUser) {
+      state.usersInfo[updateUser.userKey].userWallet = updateUser.userWallet;
     },
   },
   actions: {
@@ -84,7 +84,6 @@ export default new Vuex.Store({
         userPassword: sha256(dataPassword).toString(Base64),
         userLoginFlag: false,
         userWallet: 0,
-
       }
       let userId = 0;
       if (!Object.keys(state.usersInfo).length) {
@@ -101,6 +100,22 @@ export default new Vuex.Store({
     commitLoginUser({ commit }, { dataUserkey }) {
       commit('setLoginUserInfo', dataUserkey);
     },
+    sendWallet({ commit }, { updateUser }) {
+      const userkey = updateUser.userKey;
+      const updateInfo = {
+        userName: updateUser.userName,
+        userEmail: updateUser.userEmail,
+        userPassword: updateUser.userPassword,
+        userLoginFlag: false,
+        userWallet: updateUser.userWallet,
+      }
+      commit('updateUserInfo', updateUser);
+      firebase.database().ref(`userinfo/${userkey}`).set(updateInfo, (error) => {
+        if (error) {
+          console.error(error);
+        }
+      });
+    }
   },
   modules: {}
 });

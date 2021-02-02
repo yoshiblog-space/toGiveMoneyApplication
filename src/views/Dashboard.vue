@@ -3,8 +3,8 @@
     <img alt="Vue logo" src="../assets/logo.png" />
     <div class="welcome">
       <div class="userinfo">
-        <p class="subtitle is-5">{{ user }}さんようこそ！！</p>
-        <p class="subtitle is-5">残高:{{ wallet }}</p>
+        <p class="subtitle is-5">{{ userAllData.userName }}さんようこそ！！</p>
+        <p class="subtitle is-5">残高:{{ userAllData.userWallet }}</p>
       </div>
       <button class="button is-link is-outlined logout" @click="logoutUser">
         ログアウト
@@ -24,7 +24,7 @@
           <td>
             <div class="buttons">
               <button
-                v-on:click="openModal(otherUser)"
+                v-on:click="openShowModal(otherUser)"
                 class="button is-focused is-info is-size-6 walletbutton"
               >
                 walletを見る
@@ -33,7 +33,10 @@
           </td>
           <td>
             <div class="buttons">
-              <button class="sendbutton button is-focused is-info is-size-6">
+              <button
+                v-on:click="openSendModal(otherUser)"
+                class="sendbutton button is-focused is-info is-size-6"
+              >
                 送る
               </button>
             </div>
@@ -49,8 +52,30 @@
         <p>{{ dialogName }}さんの残高</p>
         <p class="walletdisplay">{{ dialogWallet }}</p>
         <div id="contentfooter">
-          <button class="button is-danger closebutton" v-on:click="closeModal">
+          <button
+            class="button is-danger closebutton"
+            v-on:click="closeShowModal"
+          >
             close
+          </button>
+        </div>
+      </div>
+    </transition>
+    <transition name="fade">
+      <div id="overlay" v-if="sendContent"></div>
+    </transition>
+    <transition name="trans">
+      <div id="sendcontent" v-if="sendContent">
+        <p>あなたの残高：{{ userAllData.userWallet }}</p>
+        <p>送る金額</p>
+        <p class="errmessage" v-show="walletError">ウォレットが足りません</p>
+        <input type="number" class="senddisplay" v-model="walletValue" />
+        <div id="sendcontentfooter">
+          <button
+            class="button is-danger sendclosebutton"
+            v-on:click="closeSendModal"
+          >
+            送信
           </button>
         </div>
       </div>
@@ -65,7 +90,7 @@ export default {
   name: 'dashboard',
   beforeRouteEnter(to, form, next) {
     next((vm) => {
-      if (!vm.$store.getters.logOnUser.userName) {
+      if (!vm.$store.getters.logOnUser.userInfo.userName) {
         alert('ログイン情報がありません。');
         next('/login');
       }
@@ -73,35 +98,62 @@ export default {
   },
   data() {
     return {
-      user: '',
-      wallet: '',
       showContent: false,
+      userAllData: {},
       otherUsers: [],
       dialogName: '',
       dialogWallet: '',
+      sendContent: false,
+      walletValue: '',
+      walletError: false,
+      selectUser: {},
     };
   },
-  mounted() {
+  created() {
     const userData = this.$store.getters.logOnUser;
-    this.user = userData.userName;
-    this.wallet = userData.userWallet;
+    this.userAllData = userData.userInfo;
     this.otherUsers = userData.otherUsers;
   },
   methods: {
     logoutUser() {
       this.$store.dispatch({
         type: 'commitLoginUser',
-        dataUserkey: this.$store.getters.logOnUser.userkey,
+        dataUserkey: this.userAllData.userKey,
       });
       this.$router.push({ path: '/login' });
     },
-    openModal(otherUser) {
+    openShowModal(otherUser) {
       this.showContent = true;
       this.dialogName = otherUser.userName;
       this.dialogWallet = otherUser.userWallet;
     },
-    closeModal() {
+    closeShowModal() {
       this.showContent = false;
+    },
+    openSendModal(otherUser) {
+      this.walletValue = '';
+      this.sendContent = true;
+      this.selectUser = otherUser;
+    },
+    closeSendModal: async function () {
+      if (this.userAllData.userWallet < this.walletValue) {
+        this.walletError = true;
+        return;
+      } else {
+        this.sendContent = false;
+        this.walletError = false;
+        this.selectUser.userWallet =
+          Number(this.selectUser.userWallet) + Number(this.walletValue);
+        this.userAllData.userWallet -= this.walletValue;
+        await this.$store.dispatch({
+          type: 'sendWallet',
+          updateUser: this.userAllData,
+        });
+        await this.$store.dispatch({
+          type: 'sendWallet',
+          updateUser: this.selectUser,
+        });
+      }
     },
   },
 };
@@ -183,14 +235,49 @@ tr {
   top: 100px;
   left: 0px;
 }
+#sendcontent {
+  z-index: 2;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  border-radius: 5px;
+  width: 250px;
+  height: 175px;
+  padding: 1em;
+  background: #fff;
+  margin-left: -125px;
+  margin-top: -75px;
+}
+#sendcontentfooter {
+  border-radius: 2px;
+  z-index: 2;
+  width: 250px;
+  height: 50px;
+  padding: 1em;
+  background: rgba(0, 0, 0, 0.4);
+  position: absolute;
+  top: 125px;
+  left: 0px;
+}
 .closebutton {
   height: 25px;
   width: 50px;
   font-size: 14px;
   margin-left: 110px;
 }
+.sendclosebutton {
+  height: 25px;
+  width: 50px;
+  font-size: 14px;
+  margin-left: 160px;
+}
 .walletdisplay {
   margin-top: 20px;
+}
+.senddisplay {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  width: 220px;
 }
 .fade-enter-active,
 .fade-leave-active {
@@ -210,5 +297,8 @@ tr {
 /* .slide-fade-leave-active below version 2.1.8 */ {
   transform: translateY(30px);
   opacity: 0;
+}
+.errmessage {
+  color: red;
 }
 </style>
