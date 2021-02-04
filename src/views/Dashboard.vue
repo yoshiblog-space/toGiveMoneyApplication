@@ -142,17 +142,21 @@ export default {
       } else {
         this.sendContent = false;
         this.walletError = false;
-        this.selectUser.userWallet =
-          Number(this.selectUser.userWallet) + Number(this.walletValue);
-        this.userAllData.userWallet -= this.walletValue;
+        console.log(this.userAllData, this.selectUser);
         await this.$store.dispatch({
+          //送金処理
           type: 'sendWallet',
-          updateUser: this.userAllData,
+          sendUser: this.userAllData,
+          receiveUser: this.selectUser,
+          sendWallet: this.walletValue,
         });
-        await this.$store.dispatch({
-          type: 'sendWallet',
-          updateUser: this.selectUser,
-        });
+        if (this.$store.getters.resultSendWallet.errorFlag) {
+          alert('送金エラー');
+          return;
+        } else {
+          this.userAllData.userWallet = this.$store.getters.resultSendWallet.changeUserWallet;
+          this.selectUser.userWallet = this.$store.getters.resultSendWallet.changeOtherUserWallet;
+        }
       }
     },
   },

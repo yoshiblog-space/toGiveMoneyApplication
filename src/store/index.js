@@ -11,6 +11,9 @@ export default new Vuex.Store({
   state: {
     nonce: "randamValue",
     usersInfo: {},
+    sendErrorFlag: false,
+    changeUserWallet: "",
+    changeOtherUserWallet: "",
   },
   getters: {
     checkUserData: (state) => (dataEmail, dataPassword) => {  //ユーザー登録情報の確認
@@ -55,6 +58,13 @@ export default new Vuex.Store({
         otherUsers: otherUsersInfo,
       }
     },
+    resultSendWallet(state) {
+      return {
+        errorFlag: state.sendErrorFlag,
+        changeUserWallet: state.changeUserWallet,
+        changeOtherUserWallet: state.changeOtherUserWallet,
+      }
+    }
   },
   mutations: {
     setUserInfo(state, userAllData) {
@@ -64,9 +74,18 @@ export default new Vuex.Store({
     setLoginUserInfo(state, dataUserkey) {
       state.usersInfo[dataUserkey].userLoginFlag = !state.usersInfo[dataUserkey].userLoginFlag;
     },
-    updateUserInfo(state, updateUser) {
-      state.usersInfo[updateUser.userKey].userWallet = updateUser.userWallet;
+    updateUserInfo(state, changeReceiveWallet) {
+      console.log(changeReceiveWallet)
+      state.usersInfo[changeReceiveWallet.sendUserKey].userWallet = changeReceiveWallet.sendWallet;
+      state.usersInfo[changeReceiveWallet.receiveUserKey].userWallet = changeReceiveWallet.receiveWallet;
     },
+    setErrorFlag(state, errorFlag) {
+      state.sendErrorFlag = errorFlag;
+    },
+    setResultSend(state, changeUsersWallet) {
+      state.changeUserWallet = changeUsersWallet.changeUserWallet;
+      state.changeOtherUserWallet = changeUsersWallet.changeOtherUserWallet;
+    }
   },
   actions: {
     onLoadData: async function ({ commit }) {
@@ -100,21 +119,64 @@ export default new Vuex.Store({
     commitLoginUser({ commit }, { dataUserkey }) {
       commit('setLoginUserInfo', dataUserkey);
     },
-    sendWallet({ commit }, { updateUser }) {
-      const userkey = updateUser.userKey;
-      const updateInfo = {
-        userName: updateUser.userName,
-        userEmail: updateUser.userEmail,
-        userPassword: updateUser.userPassword,
+    sendWallet: async function ({ commit }, { sendUser, receiveUser, sendWallet }) {
+      let errorFlag = false
+      commit('setErrorFlag', errorFlag);   //初期化
+      const balance = sendUser.userWallet - sendWallet;
+      const sendUserkey = sendUser.userKey;
+      const sendUserInfo = {
+        userName: sendUser.userName,
+        userEmail: sendUser.userEmail,
+        userPassword: sendUser.userPassword,
         userLoginFlag: false,
-        userWallet: updateUser.userWallet,
+        userWallet: balance,
       }
-      commit('updateUserInfo', updateUser);
-      firebase.database().ref(`userinfo/${userkey}`).set(updateInfo, (error) => {
+      receiveUser.userWallet = Number(receiveUser.userWallet) + Number(sendWallet);
+      const receiveUserkey = receiveUser.userKey;
+      const receiveUserInfo = {
+        userName: receiveUser.userName,
+        userEmail: receiveUser.userEmail,
+        userPassword: receiveUser.userPassword,
+        userLoginFlag: false,
+        userWallet: receiveUser.userWallet,
+      }
+      await firebase.database().ref(`userinfo/${sendUserkey}`).set(sendUserInfo, (error) => {
         if (error) {
-          console.error(error);
+          errorFlag = true;
+          commit('setErrorFlag', errorFlag);
+          return;
         }
       });
+      await firebase.database().ref(`userinfo/${receiveUserkey}`).set(receiveUserInfo, (error) => {
+        if (error) {
+          errorFlag = true;
+          commit('setErrorFlag', errorFlag);
+          sendUserInfo.userWallet = sendUser.userWallet;
+          firebase.database().ref(`userinfo/${sendUserkey}`).set(sendUserInfo, (error) => {
+            //送信エラーに対してロールバック処理
+            if (error) {
+              console.error(error);
+              alert('システムエラー');
+              return;
+            }
+          })
+          return;
+        }
+      });
+      //正常に完了し、値の更新
+      const changeReceiveWallet = {
+        sendUserKey: sendUser.userKey,
+        sendWallet: balance,
+        receiveUserKey: receiveUser.userKey,
+        receiveWallet: receiveUser.userWallet,
+      }
+
+      commit('updateUserInfo', changeReceiveWallet);
+      const changeUsersWallet = {
+        changeUserWallet: balance,
+        changeOtherUserWallet: receiveUser.userWallet,
+      }
+      commit('setResultSend', changeUsersWallet);
     }
   },
   modules: {}
