@@ -11,6 +11,9 @@ export default new Vuex.Store({
   state: {
     nonce: "randamValue",
     usersInfo: {},
+    sendErrorFlag: false,
+    changeUserWallet: "",
+    changeOtherUserWallet: "",
   },
   getters: {
     checkUserData: (state) => (dataEmail, dataPassword) => {  //ユーザー登録情報の確認
@@ -36,28 +39,32 @@ export default new Vuex.Store({
     },
     logOnUser(state) { //ダッシュボードのユーザー情報取得
       const userskeys = Object.keys(state.usersInfo);
-      let logOnName = '';
-      let logOnWallet = '';
-      let logOnUserkey = '';  //for logout 
+      let userInfo = {};
       let otherUsersInfo = [];
       if (userskeys) {
         userskeys.forEach(userkey => {
           if (state.usersInfo[userkey].userLoginFlag === true) {
-            logOnName = state.usersInfo[userkey].userName;
-            logOnWallet = state.usersInfo[userkey].userWallet;
-            logOnUserkey = userkey;
+            userInfo = state.usersInfo[userkey];
+            userInfo.userKey = userkey;
           } else {
-            otherUsersInfo.push(state.usersInfo[userkey]);
+            const otheruserInfo = state.usersInfo[userkey];
+            otheruserInfo.userKey = userkey;
+            otherUsersInfo.push(otheruserInfo);
           }
         })
       }
       return {
-        userName: logOnName,
-        userWallet: logOnWallet,
-        userkey: logOnUserkey,
+        userInfo: userInfo,
         otherUsers: otherUsersInfo,
       }
     },
+    resultSendWallet(state) {
+      return {
+        errorFlag: state.sendErrorFlag,
+        changeUserWallet: state.changeUserWallet,
+        changeOtherUserWallet: state.changeOtherUserWallet,
+      }
+    }
   },
   mutations: {
     setUserInfo(state, userAllData) {
@@ -67,6 +74,17 @@ export default new Vuex.Store({
     setLoginUserInfo(state, dataUserkey) {
       state.usersInfo[dataUserkey].userLoginFlag = !state.usersInfo[dataUserkey].userLoginFlag;
     },
+    updateUserInfo(state, changeReceiveWallet) {
+      state.usersInfo[changeReceiveWallet.sendUserKey].userWallet = changeReceiveWallet.sendWallet;
+      state.usersInfo[changeReceiveWallet.receiveUserKey].userWallet = changeReceiveWallet.receiveWallet;
+    },
+    setErrorFlag(state, errorFlag) {
+      state.sendErrorFlag = errorFlag;
+    },
+    setResultSend(state, changeUsersWallet) {
+      state.changeUserWallet = changeUsersWallet.changeUserWallet;
+      state.changeOtherUserWallet = changeUsersWallet.changeOtherUserWallet;
+    }
   },
   actions: {
     onLoadData: async function ({ commit }) {
@@ -84,7 +102,6 @@ export default new Vuex.Store({
         userPassword: sha256(dataPassword).toString(Base64),
         userLoginFlag: false,
         userWallet: 0,
-
       }
       let userId = 0;
       if (!Object.keys(state.usersInfo).length) {
@@ -101,6 +118,65 @@ export default new Vuex.Store({
     commitLoginUser({ commit }, { dataUserkey }) {
       commit('setLoginUserInfo', dataUserkey);
     },
+    sendWallet: async function ({ commit }, { sendUser, receiveUser, sendWallet }) {
+      let errorFlag = false
+      commit('setErrorFlag', errorFlag);   //初期化
+      const balance = sendUser.userWallet - sendWallet;
+      const sendUserkey = sendUser.userKey;
+      const sendUserInfo = {
+        userName: sendUser.userName,
+        userEmail: sendUser.userEmail,
+        userPassword: sendUser.userPassword,
+        userLoginFlag: false,
+        userWallet: balance,
+      }
+      receiveUser.userWallet = Number(receiveUser.userWallet) + Number(sendWallet);
+      const receiveUserkey = receiveUser.userKey;
+      const receiveUserInfo = {
+        userName: receiveUser.userName,
+        userEmail: receiveUser.userEmail,
+        userPassword: receiveUser.userPassword,
+        userLoginFlag: false,
+        userWallet: receiveUser.userWallet,
+      }
+      await firebase.database().ref(`userinfo/${sendUserkey}`).set(sendUserInfo, (error) => {
+        if (error) {
+          errorFlag = true;
+          commit('setErrorFlag', errorFlag);
+          return;
+        }
+      });
+      await firebase.database().ref(`userinfo/${receiveUserkey}`).set(receiveUserInfo, (error) => {
+        if (error) {
+          errorFlag = true;
+          commit('setErrorFlag', errorFlag);
+          sendUserInfo.userWallet = sendUser.userWallet;
+          firebase.database().ref(`userinfo/${sendUserkey}`).set(sendUserInfo, (error) => {
+            //送信エラーに対してロールバック処理
+            if (error) {
+              console.error(error);
+              alert('システムエラー');
+              return;
+            }
+          })
+          return;
+        }
+      });
+      //正常に完了し、値の更新
+      const changeReceiveWallet = {
+        sendUserKey: sendUser.userKey,
+        sendWallet: balance,
+        receiveUserKey: receiveUser.userKey,
+        receiveWallet: receiveUser.userWallet,
+      }
+
+      commit('updateUserInfo', changeReceiveWallet);
+      const changeUsersWallet = {
+        changeUserWallet: balance,
+        changeOtherUserWallet: receiveUser.userWallet,
+      }
+      commit('setResultSend', changeUsersWallet);
+    }
   },
   modules: {}
 });
