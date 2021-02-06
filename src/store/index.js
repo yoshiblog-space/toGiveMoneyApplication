@@ -75,7 +75,6 @@ export default new Vuex.Store({
       state.usersInfo[dataUserkey].userLoginFlag = !state.usersInfo[dataUserkey].userLoginFlag;
     },
     updateUserInfo(state, changeReceiveWallet) {
-      console.log(changeReceiveWallet)
       state.usersInfo[changeReceiveWallet.sendUserKey].userWallet = changeReceiveWallet.sendWallet;
       state.usersInfo[changeReceiveWallet.receiveUserKey].userWallet = changeReceiveWallet.receiveWallet;
     },
